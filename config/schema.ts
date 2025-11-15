@@ -49,3 +49,26 @@ export const PAYMENT_RECORD_TABLE = pgTable("paymentRecord", {
   customerId: varchar(),
   sessionId: varchar(),
 });
+
+export const VIDEO_CONTENT_TABLE = pgTable("video_content", {
+  id: serial().primaryKey(),
+  courseId: varchar().notNull(),
+  chapterId: integer().notNull(),
+  videoUrl: varchar(),
+  thumbnailUrl: varchar(),
+  status: varchar().default("Pending"), // Pending, Generating, Ready, Failed
+  language: varchar().default("en"),
+  duration: integer(), // in seconds
+  script: json(), // Generated script structure
+  createdAt: timestamp().defaultNow().notNull(),
+  updatedAt: timestamp(),
+});
+
+export const TRANSLATION_CACHE_TABLE = pgTable("translation_cache", {
+  id: serial().primaryKey(),
+  sourceText: text().notNull(),
+  targetLanguage: varchar().notNull(),
+  translatedText: text().notNull(),
+  contentType: varchar(), // 'script', 'narration', etc.
+  createdAt: timestamp().defaultNow().notNull(),
+});

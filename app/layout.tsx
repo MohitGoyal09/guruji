@@ -11,6 +11,7 @@ import "./globals.css";
 import Provider from "./provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LanguageProvider } from "@/app/_context/LanguageContext";
 import Footer from "@/components/Footer";
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,16 +38,18 @@ export default function RootLayout({
       <html lang="en">
         <body>
           <Provider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <Toaster />
-             {/* <Footer /> */}
-            </ThemeProvider>
+            <LanguageProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+                <Toaster />
+               {/* <Footer /> */}
+              </ThemeProvider>
+            </LanguageProvider>
           </Provider> 
         </body>
       </html>

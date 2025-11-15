@@ -31,45 +31,107 @@ function ViewNotes() {
 
   const GetNotes = async () => {
     try {
+      // First, fetch the course to get chapter information
+      const courseResult = await axios.get("/api/courses", {
+        params: { courseId: courseId },
+      });
+
+      let courseLayout = null;
+      if (courseResult.data.course && Array.isArray(courseResult.data.course) && courseResult.data.course.length > 0) {
+        const courseData = courseResult.data.course[0];
+        courseLayout = typeof courseData.courseLayout === "string" 
+          ? JSON.parse(courseData.courseLayout) 
+          : courseData.courseLayout;
+      }
+
+      // Fetch notes from database
       const result = await axios.post<NotesResponse[]>("/api/study-type", {
         courseId: courseId,
         studyType: "notes",
       });
       console.log("API Response:", result.data);
 
+      if (!result.data || result.data.length === 0) {
+        setNotesData([]);
+        setLoading(false);
+        return;
+      }
+
+      // Parse notes and map to chapters
       const parsedNotes = result.data
-        .map((chapter) => {
+        .map((chapterNote) => {
           try {
-            const notesString = chapter.notes.replace(/^"(.*)"$/, "$1");
-            const parsedChapterNotes = JSON.parse(notesString)[0];
-            return parsedChapterNotes;
+            // Parse the notes JSON string
+            let notesString = chapterNote.notes;
+            
+            // Handle if notesString is already a JSON string (double-encoded)
+            if (typeof notesString === 'string') {
+              // Remove surrounding quotes if present
+              if (notesString.startsWith('"') && notesString.endsWith('"')) {
+                notesString = notesString.slice(1, -1);
+              }
+              
+              // Unescape JSON string if needed
+              notesString = notesString.replace(/\\"/g, '"').replace(/\\n/g, '\n');
+            }
+            
+            let parsedNotesObj;
+            try {
+              parsedNotesObj = typeof notesString === 'string' ? JSON.parse(notesString) : notesString;
+            } catch (parseError) {
+              // If parsing fails, try to extract content directly
+              console.warn('Failed to parse notes JSON, attempting direct extraction:', parseError);
+              parsedNotesObj = { notes: { html_content: notesString } };
+            }
+            
+            // Extract html_content from the parsed object
+            // Structure can be: {"notes":{"html_content":"..."}} or {"html_content":"..."}
+            let htmlContent = "";
+            if (parsedNotesObj?.notes?.html_content) {
+              htmlContent = parsedNotesObj.notes.html_content;
+            } else if (parsedNotesObj?.html_content) {
+              htmlContent = parsedNotesObj.html_content;
+            } else if (Array.isArray(parsedNotesObj) && parsedNotesObj[0]?.notes?.html_content) {
+              htmlContent = parsedNotesObj[0].notes.html_content;
+            } else if (typeof parsedNotesObj === "string") {
+              htmlContent = parsedNotesObj;
+            } else {
+              // Fallback: stringify the object
+              htmlContent = JSON.stringify(parsedNotesObj);
+            }
+            
+            // Validate that we have content
+            if (!htmlContent || htmlContent.trim().length === 0) {
+              console.warn(`Empty content for chapter ${chapterNote.chapterId}`);
+              return null;
+            }
+
+            // Get chapter info from courseLayout using chapterId
+            const chapterId = chapterNote.chapterId;
+            // Try to match chapterId with chapter_number (handle both 0-indexed and 1-indexed)
+            const chapterInfo = courseLayout?.chapters?.find(
+              (ch: any) => ch.chapter_number === chapterId || ch.chapter_number === chapterId + 1
+            ) || courseLayout?.chapters?.[chapterId]; // Fallback to array index
+
+            // Create ChapterNotes object
+            const chapterNotes: ChapterNotes = {
+              chapter_number: chapterInfo?.chapter_number ?? chapterId,
+              chapter_title: chapterInfo?.chapter_title || `Chapter ${chapterId}`,
+              chapter_summary: chapterInfo?.chapter_summary || "",
+              topics: chapterInfo?.topics || [],
+              notes: {
+                html_content: htmlContent,
+              },
+            };
+
+            return chapterNotes;
           } catch (e) {
-            console.error("Error parsing notes for chapter:", chapter.id, e);
+            console.error("Error parsing notes for chapter:", chapterNote.id, e, chapterNote.notes);
             return null;
           }
         })
         .filter((note): note is ChapterNotes => note !== null)
         .sort((a, b) => a.chapter_number - b.chapter_number);
-
-      
-      const minChapter = parsedNotes[0]?.chapter_number || 0;
-      const maxChapter =
-        parsedNotes[parsedNotes.length - 1]?.chapter_number || 0;
-      for (let i = minChapter; i <= maxChapter; i++) {
-        const chapter = parsedNotes.find((note) => note.chapter_number === i);
-        if (!chapter) {
-          
-          parsedNotes.splice(i - minChapter, 0, {
-            chapter_number: i,
-            chapter_title: `Chapter ${i}`,
-            chapter_summary: `Summary for Chapter ${i}`,
-            topics: [`Topic 1 for Chapter ${i}`],
-            notes: {
-              html_content: `<h2>Chapter ${i}</h2><p>Content for Chapter ${i}</p>`,
-            },
-          });
-        }
-      }
 
       setNotesData(parsedNotes);
     } catch (error) {
@@ -100,12 +162,19 @@ function ViewNotes() {
   };
 
   const decodeHtmlContent = (content: string) => {
+    if (!content) return "";
+    
     return content
       .replace(/\\n/g, "\n")
+      .replace(/\\r/g, "\r")
+      .replace(/\\t/g, "\t")
       .replace(/\\'/g, "'")
       .replace(/\\"/g, '"')
       .replace(/\\&/g, "&")
-      .replace(/\\;/g, ";");
+      .replace(/\\</g, "<")
+      .replace(/\\>/g, ">")
+      .replace(/\\;/g, ";")
+      .replace(/\\\\/g, "\\");
   };
 
   if (loading) {

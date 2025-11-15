@@ -2,7 +2,6 @@ import { courseOutline } from "@/config/AiModel";
 import { db } from "@/config/db";
 import { STUDY_MATERIAL_TABLE } from "@/config/schema";
 import { inngest } from "@/inngest/client";
-import { Inngest } from "inngest";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -45,7 +44,15 @@ export async function POST(req: Request) {
         throw new Error("AI response text is not a string");
       }
 
-      aiResult = JSON.parse(text);
+      // Clean JSON string (remove markdown code blocks if present)
+      let cleanedText = text.trim();
+      if (cleanedText.startsWith('```json')) {
+        cleanedText = cleanedText.replace(/```json\n?/g, '').replace(/```\n?$/g, '');
+      } else if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.replace(/```\n?/g, '');
+      }
+
+      aiResult = JSON.parse(cleanedText);
 
       if (!aiResult || typeof aiResult !== "object") {
         throw new Error("AI response is not a valid JSON object");
@@ -72,17 +79,31 @@ export async function POST(req: Request) {
         .returning();
 
       try {
+        // Ensure courseLayout is properly structured for Inngest
+        const courseData = {
+          ...dbResult[0],
+          courseLayout: dbResult[0].courseLayout, // Drizzle should handle JSON automatically
+        };
+        
+        console.log('Sending notes generation event for course:', courseData.courseId);
+        const courseLayout = courseData.courseLayout as any;
+        console.log('Course layout chapters:', courseLayout?.chapters?.length || 0);
+        
         const result = await inngest.send({
           name: "notes.generate",
           data: {
-            course: dbResult[0],
+            course: courseData,
           },
         });
+        
         if (!result) {
           throw new Error("Failed to queue notes generation");
         }
+        
+        console.log('Notes generation event queued successfully');
       } catch (error) {
         console.error("Error queuing notes generation:", error);
+        // Don't fail the request if Inngest fails - notes can be generated later
       }
       return NextResponse.json(dbResult[0], { status: 201 });
     } catch (error) {
