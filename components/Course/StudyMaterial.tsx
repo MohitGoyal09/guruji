@@ -146,26 +146,43 @@ export default function StudyMaterial({
     );
   }
 
+  const gradients = [
+    "from-blue-500 to-cyan-500",
+    "from-purple-500 to-pink-500",
+    "from-orange-500 to-red-500",
+    "from-green-500 to-emerald-500",
+    "from-indigo-500 to-purple-500",
+  ];
+
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-      {MaterialList.map((item) => {
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {MaterialList.map((item, index) => {
         const isAvailable =
           studyTypeContent[item.type] !== null &&
           studyTypeContent[item.type] !== undefined;
+        const gradient = gradients[index % gradients.length];
+
         return isAvailable ? (
           <Link href={`/course/${courseId}${item.path}`} key={item.type}>
-            <Card className="transition-all duration-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-lg hover:scale-105">
-              <CardHeader className="space-y-4">
-                <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center">
-                  <item.icon className="w-6 h-6 text-primary" />
+            <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border-2 hover:border-primary/50">
+              <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+
+              <CardHeader className="space-y-6 p-6">
+                <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+                  <item.icon className="w-8 h-8 text-white" />
                 </div>
+
                 <div className="space-y-2">
-                  <CardTitle className="text-xl">{item.name}</CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground">
+                  <CardTitle className="text-2xl font-bold">{item.name}</CardTitle>
+                  <CardDescription className="text-base">
                     {item.desc}
                   </CardDescription>
                 </div>
-                <Button className="w-full mt-2" variant="outline">
+
+                <Button
+                  className={`w-full mt-4 bg-gradient-to-r ${gradient} text-white border-0 hover:opacity-90 transition-opacity`}
+                  size="lg"
+                >
                   View
                 </Button>
               </CardHeader>
@@ -174,21 +191,24 @@ export default function StudyMaterial({
         ) : (
           <Card
             key={item.type}
-            className="opacity-70 bg-gray-50 dark:bg-gray-800"
+            className="group relative overflow-hidden transition-all duration-300 border-2 border-dashed opacity-75 hover:opacity-100"
           >
-            <CardHeader className="space-y-4">
-              <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center">
-                <item.icon className="w-6 h-6 text-primary" />
+            <CardHeader className="space-y-6 p-6">
+              <div className="relative w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+                <item.icon className="w-8 h-8 text-muted-foreground" />
               </div>
+
               <div className="space-y-2">
-                <CardTitle className="text-xl">{item.name}</CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">
+                <CardTitle className="text-2xl font-bold">{item.name}</CardTitle>
+                <CardDescription className="text-base">
                   {item.desc}
                 </CardDescription>
               </div>
+
               <Button
-                className="w-full mt-2"
+                className="w-full mt-4"
                 variant="outline"
+                size="lg"
                 onClick={() => GenerateContent(item.type)}
               >
                 Generate

@@ -1,0 +1,56 @@
+{
+  "common": {
+    "welcome": "Bienvenido",
+    "dashboard": "Panel",
+    "courses": "Cursos",
+    "create": "Crear",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "signup": "Registrarse",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior"
+  },
+  "course": {
+    "title": "Curso",
+    "chapters": "Capítulos",
+    "notes": "Notas",
+    "flashcards": "Tarjetas",
+    "quizzes": "Cuestionarios",
+    "qa": "Preguntas y Respuestas",
+    "video": "Video",
+    "studyMaterial": "Material de Estudio",
+    "noNotesAvailable": "No hay notas disponibles para este curso.",
+    "chapter": "Capítulo",
+    "ofChapters": "de {count} capítulos",
+    "difficulty": "Dificultad",
+    "summary": "Resumen"
+  },
+  "create": {
+    "enterTopic": "Ingrese el tema o pegue el contenido para el cual desea generar material de estudio",
+    "selectDifficulty": "Seleccionar Nivel de Dificultad",
+    "difficultyEasy": "Fácil",
+    "difficultyModerate": "Moderado",
+    "difficultyHard": "Difícil",
+    "selectStudyType": "Seleccionar Tipo de Estudio",
+    "studyTypePractice": "Práctica",
+    "studyTypeExam": "Examen",
+    "studyTypeInterview": "Entrevista",
+    "generate": "Generar"
+  },
+  "dashboard": {
+    "myCourses": "Mis Cursos",
+    "createNewCourse": "Crear Nuevo Curso",
+    "noCourses": "Aún no hay cursos. ¡Crea tu primer curso!",
+    "upgrade": "Actualizar"
+  }
+}
+

@@ -9,7 +9,7 @@ interface Props {
   audioUrl?: string;
 }
 
-export const EducationalVideo: React.FC<Props> = ({ script, language, audioUrl }) => {
+export const EducationalVideo = ({ script, language, audioUrl }: Props) => {
   return (
     <AbsoluteFill style={{ backgroundColor: '#0f172a' }}>
       {audioUrl && <Audio src={audioUrl} />}

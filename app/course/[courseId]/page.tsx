@@ -97,17 +97,40 @@ export default function CoursePage() {
   } else if (courseState === "success") {
     console.log(course);
     return (
-      <div>
-        <div className="mx-10 md:mx-42 lg:px-60 mt-10">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
           {course && <CourseIntro course={course} />}
-          <h1 className="text-2xl font-bold mb-6 mt-10">Study Material</h1>
-          {courseId && course && (
-            <StudyMaterial
-              courseId={Array.isArray(courseId) ? courseId[0] : courseId}
-              course={course}
-            />
-          )}
-          {course && <ChapterList courseLayout={course.courseLayout} />}
+
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Study Materials
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Choose your preferred learning method
+              </p>
+            </div>
+
+            {courseId && course && (
+              <StudyMaterial
+                courseId={Array.isArray(courseId) ? courseId[0] : courseId}
+                course={course}
+              />
+            )}
+          </div>
+
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Course Curriculum
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Explore the chapters and topics covered in this course
+              </p>
+            </div>
+
+            {course && <ChapterList courseLayout={course.courseLayout} />}
+          </div>
         </div>
       </div>
     );

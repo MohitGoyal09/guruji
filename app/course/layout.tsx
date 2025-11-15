@@ -10,7 +10,7 @@ export default function CourseViewLayout({
     <div>
       <DashboardHeader />
       {children}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

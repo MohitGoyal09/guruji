@@ -12,6 +12,7 @@ export async function renderVideo(
   const bundleLocation = await bundle({
     entryPoint: path.join(process.cwd(), 'remotion/index.ts'),
     webpackOverride: (config) => config,
+    ignoreRegisterRootWarning: false, // We're using registerRoot now
   });
   
   const composition = await selectComposition({

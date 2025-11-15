@@ -34,8 +34,15 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error('Video rendering error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     return NextResponse.json(
-      { error: 'Failed to render video', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Failed to render video', 
+        details: errorMessage,
+        ...(errorStack && { stack: errorStack })
+      },
       { status: 500 }
     );
   }

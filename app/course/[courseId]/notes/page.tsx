@@ -64,24 +64,75 @@ function ViewNotes() {
             // Parse the notes JSON string
             let notesString = chapterNote.notes;
             
-            // Handle if notesString is already a JSON string (double-encoded)
+            // Handle double-escaped JSON from database
             if (typeof notesString === 'string') {
-              // Remove surrounding quotes if present
+              // Remove surrounding quotes if present (handles both "..." and """...""")
+              notesString = notesString.trim();
               if (notesString.startsWith('"') && notesString.endsWith('"')) {
                 notesString = notesString.slice(1, -1);
               }
               
-              // Unescape JSON string if needed
-              notesString = notesString.replace(/\\"/g, '"').replace(/\\n/g, '\n');
+              // Replace double-escaped quotes ("" -> ")
+              // This handles PostgreSQL's text escaping where " becomes ""
+              notesString = notesString.replace(/""/g, '"');
+              
+              // Also handle standard JSON escape sequences
+              notesString = notesString.replace(/\\"/g, '"');
             }
             
             let parsedNotesObj;
             try {
+              // Try parsing the JSON string
               parsedNotesObj = typeof notesString === 'string' ? JSON.parse(notesString) : notesString;
             } catch (parseError) {
-              // If parsing fails, try to extract content directly
-              console.warn('Failed to parse notes JSON, attempting direct extraction:', parseError);
-              parsedNotesObj = { notes: { html_content: notesString } };
+              // If parsing fails, try to fix common issues
+              console.warn('Failed to parse notes JSON, attempting to fix:', parseError);
+              
+              // Try to extract JSON-like structure manually using a more robust regex
+              try {
+                // Look for html_content pattern - handle escaped quotes and newlines
+                // Pattern: "html_content":"...content..." (content can have escaped quotes and newlines)
+                const htmlContentMatch = notesString.match(/"html_content"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+                if (htmlContentMatch && htmlContentMatch[1]) {
+                  let extractedContent = htmlContentMatch[1];
+                  // Decode escape sequences
+                  extractedContent = extractedContent
+                    .replace(/\\n/g, '\n')
+                    .replace(/\\r/g, '\r')
+                    .replace(/\\t/g, '\t')
+                    .replace(/\\"/g, '"')
+                    .replace(/\\'/g, "'")
+                    .replace(/\\\\/g, '\\');
+                  
+                  parsedNotesObj = {
+                    notes: {
+                      html_content: extractedContent
+                    }
+                  };
+                } else {
+                  // Fallback: try to find any content between quotes after html_content
+                  const fallbackMatch = notesString.match(/html_content["\s]*:["\s]*"([\s\S]*?)"(?:\s*[,}])/);
+                  if (fallbackMatch && fallbackMatch[1]) {
+                    parsedNotesObj = {
+                      notes: {
+                        html_content: fallbackMatch[1]
+                          .replace(/\\n/g, '\n')
+                          .replace(/\\r/g, '\r')
+                          .replace(/\\t/g, '\t')
+                          .replace(/\\"/g, '"')
+                          .replace(/\\'/g, "'")
+                          .replace(/\\\\/g, '\\')
+                      }
+                    };
+                  } else {
+                    // Last fallback: treat entire string as HTML content
+                    parsedNotesObj = { notes: { html_content: notesString } };
+                  }
+                }
+              } catch (e) {
+                // Last resort: use string as-is
+                parsedNotesObj = { notes: { html_content: notesString } };
+              }
             }
             
             // Extract html_content from the parsed object
@@ -99,6 +150,16 @@ function ViewNotes() {
               // Fallback: stringify the object
               htmlContent = JSON.stringify(parsedNotesObj);
             }
+            
+            // Decode HTML escape sequences in the content
+            // Replace \n with actual newlines, handle other escape sequences
+            htmlContent = htmlContent
+              .replace(/\\n/g, '\n')
+              .replace(/\\r/g, '\r')
+              .replace(/\\t/g, '\t')
+              .replace(/\\"/g, '"')
+              .replace(/\\'/g, "'")
+              .replace(/\\\\/g, '\\');
             
             // Validate that we have content
             if (!htmlContent || htmlContent.trim().length === 0) {
@@ -164,6 +225,7 @@ function ViewNotes() {
   const decodeHtmlContent = (content: string) => {
     if (!content) return "";
     
+    // Content should already be decoded, but handle any remaining escape sequences
     return content
       .replace(/\\n/g, "\n")
       .replace(/\\r/g, "\r")

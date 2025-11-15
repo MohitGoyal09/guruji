@@ -24,7 +24,7 @@ export const GET = inngestHandlers.GET;
 export const POST = inngestHandlers.POST;
 
 // Custom PUT handler to handle empty bodies gracefully
-export async function PUT(req: NextRequest) {
+export async function PUT(req: NextRequest, context: any) {
   try {
     // Check content-length header to see if body exists
     const contentLength = req.headers.get("content-length");
@@ -44,7 +44,7 @@ export async function PUT(req: NextRequest) {
       });
       
       const nextReq = new NextRequest(emptyBodyRequest);
-      return inngestHandlers.PUT(nextReq);
+      return inngestHandlers.PUT(nextReq, context);
     }
     
     // Try to parse body to validate it
@@ -65,7 +65,7 @@ export async function PUT(req: NextRequest) {
         });
         
         const nextReq = new NextRequest(emptyBodyRequest);
-        return inngestHandlers.PUT(nextReq);
+        return inngestHandlers.PUT(nextReq, context);
       }
       
       // Validate JSON
@@ -83,11 +83,11 @@ export async function PUT(req: NextRequest) {
       });
       
       const nextReq = new NextRequest(emptyBodyRequest);
-      return inngestHandlers.PUT(nextReq);
+      return inngestHandlers.PUT(nextReq, context);
     }
     
     // Body is valid, use original request
-    return inngestHandlers.PUT(req);
+    return inngestHandlers.PUT(req, context);
   } catch (error: any) {
     // If error is related to JSON parsing in Inngest's request signing, return success
     if (error?.message?.includes("JSON") || error?.message?.includes("body")) {

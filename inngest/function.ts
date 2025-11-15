@@ -339,21 +339,27 @@ export const GenerateVideoContent = inngest.createFunction(
     const translatedScript = await step.run('Translate Script', async () => {
       if (language === 'en') return script;
       
-      const translated = {
-        ...script,
-        narration: await translateText(script.narration, language, 'narration'),
-        scenes: await Promise.all(
-          script.scenes.map(async (scene: any) => ({
-            ...scene,
-            title: await translateText(scene.title, language, 'script'),
-            content: scene.content ? await translateText(scene.content, language, 'script') : undefined,
-            points: scene.points ? await Promise.all(
-              scene.points.map((p: string) => translateText(p, language, 'script'))
-            ) : undefined,
-          }))
-        ),
-      };
-      return translated;
+      try {
+        const translated = {
+          ...script,
+          narration: await translateText(script.narration || '', language, 'narration'),
+          scenes: await Promise.all(
+            script.scenes.map(async (scene: any) => ({
+              ...scene,
+              title: await translateText(scene.title || '', language, 'script'),
+              content: scene.content ? await translateText(scene.content, language, 'script') : undefined,
+              points: scene.points ? await Promise.all(
+                scene.points.map((p: string) => translateText(p || '', language, 'script'))
+              ) : undefined,
+            }))
+          ),
+        };
+        return translated;
+      } catch (error) {
+        console.warn('Translation failed, using original script:', error);
+        // If translation fails, use original script
+        return script;
+      }
     });
     
     // Step 4: Generate audio narration
