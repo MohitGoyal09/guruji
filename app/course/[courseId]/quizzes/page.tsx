@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,20 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Quiz, ApiResponse } from "@/Types/quiz";
 import { toast } from "sonner";
+import { useLanguage } from "@/app/_context/LanguageContext";
+import { translateArray } from "@/lib/translation/lingoTranslation";
 
 export default function Quiz() {
   const { courseId } = useParams();
-  const [quiz, setQuiz] = React.useState<Quiz[]>([]);
+  const { language, availableLanguages } = useLanguage();
+  const [quiz, setQuiz] = useState<Quiz[]>([]);
+  const [originalQuiz, setOriginalQuiz] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [translating, setTranslating] = useState(false);
+  const [translationProgress, setTranslationProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [currentQuiz, setCurrentQuiz] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [correctAnswer, setCorrectAnswer] = useState<boolean | null>(null);
 
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [currentQuiz, setCurrentQuiz] = React.useState(0);
-  const [selectedAnswer, setSelectedAnswer] = React.useState<string | null>(
-    null
-  );
-  const [correctAnswer, setCorrectAnswer] = React.useState<boolean | null>(
-    null
-  );
+  const currentLanguage = availableLanguages.find(l => l.code === language) || availableLanguages[0];
 
   useEffect(() => {
     GetQuiz();
@@ -28,6 +31,39 @@ export default function Quiz() {
       "Please keep refreshing the page to see the changes while content is generating"
     );
   }, [courseId]);
+
+  // Translate quiz when language changes
+  useEffect(() => {
+    if (originalQuiz.length > 0) {
+      translateQuiz();
+    }
+  }, [language, originalQuiz]);
+
+  const translateQuiz = async () => {
+    if (language === "en") {
+      setQuiz(originalQuiz);
+      return;
+    }
+
+    setTranslating(true);
+    setTranslationProgress(0);
+
+    try {
+      const translated = await translateArray(
+        originalQuiz,
+        language,
+        (progress) => setTranslationProgress(progress)
+      );
+      setQuiz(translated);
+    } catch (error) {
+      console.error("Translation error:", error);
+      toast.error("Translation failed. Showing original content.");
+      setQuiz(originalQuiz);
+    } finally {
+      setTranslating(false);
+      setTranslationProgress(0);
+    }
+  };
 
   const GetQuiz = async () => {
     setLoading(true);
@@ -48,8 +84,8 @@ export default function Quiz() {
             "options" in q &&
             "correctAnswer" in q
         );
+        setOriginalQuiz(validQuiz as Quiz[]);
         setQuiz(validQuiz as Quiz[]);
-        
       } else {
         setError("Invalid quiz data received from API.");
       }
@@ -119,6 +155,22 @@ export default function Quiz() {
 
   return (
     <div className="max-w-3xl mx-auto p-8 space-y-8">
+      {translating && (
+        <div className="mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+            <p className="text-center text-sm text-blue-700 dark:text-blue-300 mb-2">
+              Translating to {currentLanguage.flag} {currentLanguage.name}... {translationProgress}%
+            </p>
+            <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+              <div
+                className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${translationProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-8">
         <Button
           variant="ghost"

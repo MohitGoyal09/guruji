@@ -1,16 +1,19 @@
 import en from '../../locales/en.json';
 
 type TranslationKeys = typeof en;
-type Locale = 'en' | 'es' | 'fr' | 'de' | 'hi' | 'zh';
+type Locale = 'en' | 'es' | 'fr' | 'de' | 'hi' | 'zh' | 'pt' | 'ja' | 'ar';
 
 // Lazy load translations
 const translations: Record<Locale, TranslationKeys> = {
   en,
-  es: en, // Will be populated by Lingo.dev CLI
-  fr: en, // Will be populated by Lingo.dev CLI
-  de: en, // Will be populated by Lingo.dev CLI
-  hi: en, // Will be populated by Lingo.dev CLI
-  zh: en, // Will be populated by Lingo.dev CLI
+  es: en, // Will be populated dynamically or by Lingo.dev CLI
+  fr: en, // Will be populated dynamically or by Lingo.dev CLI
+  de: en, // Will be populated dynamically or by Lingo.dev CLI
+  hi: en, // Will be populated dynamically or by Lingo.dev CLI
+  zh: en, // Will be populated dynamically or by Lingo.dev CLI
+  pt: en, // Portuguese
+  ja: en, // Japanese
+  ar: en, // Arabic
 };
 
 // Function to get nested translation value
@@ -42,13 +45,20 @@ export function t(key: string, locale: Locale = 'en', params?: Record<string, st
 
 // Load locale files dynamically (for client-side)
 export async function loadLocale(locale: Locale): Promise<void> {
-  if (locale === 'en') return; // Already loaded
-  
+  console.log("📖 [Translations] loadLocale called for:", locale);
+
+  if (locale === 'en') {
+    console.log("⏭️ [Translations] English already loaded");
+    return; // Already loaded
+  }
+
   try {
+    console.log(`📥 [Translations] Attempting to load: locales/${locale}.json`);
     const module = await import(`../../locales/${locale}.json`);
     translations[locale] = module.default;
-  } catch (error) {
-    console.warn(`Failed to load locale ${locale}, falling back to English`);
+    console.log(`✅ [Translations] Successfully loaded locale: ${locale}`);
+  } catch (error: any) {
+    console.warn(`⚠️ [Translations] Failed to load locale ${locale}, falling back to English:`, error?.message);
     translations[locale] = translations.en;
   }
 }

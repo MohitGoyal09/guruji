@@ -7,20 +7,73 @@ import { Course } from "@/Types/course";
 import StudyMaterial from "@/components/Course/StudyMaterial";
 import ChapterList from "@/components/Course/ChapterList";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/app/_context/LanguageContext";
+import { translateObject } from "@/lib/translation/lingoTranslation";
 
 export default function CoursePage() {
   const { courseId } = useParams();
+  const { language, availableLanguages } = useLanguage();
   const [courseState, setCourseState] = useState<
     "loading" | "success" | "error"
   >("loading");
   const [course, setCourse] = useState<Course | null>(null);
+  const [originalCourse, setOriginalCourse] = useState<Course | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const [translationProgress, setTranslationProgress] = useState(0);
   const [error, setError] = useState<unknown | null>(null);
+
+  const currentLanguage = availableLanguages.find(l => l.code === language) || availableLanguages[0];
 
   useEffect(() => {
     if (courseId) {
       GetCourse();
     }
   }, [courseId]);
+
+  // Translate course when language changes
+  useEffect(() => {
+    if (originalCourse) {
+      translateCourse();
+    }
+  }, [language, originalCourse]);
+
+  const translateCourse = async () => {
+    console.log("🎯 [Course] translateCourse called:", {
+      language,
+      languageName: currentLanguage?.name,
+      hasCourse: !!originalCourse,
+    });
+
+    if (language === "en" || !originalCourse) {
+      console.log("⏭️ [Course] Language is English or no course, using original");
+      setCourse(originalCourse);
+      return;
+    }
+
+    console.log("🚀 [Course] Starting translation process");
+    setTranslating(true);
+    setTranslationProgress(0);
+
+    try {
+      const translated = await translateObject(
+        originalCourse,
+        language,
+        (progress) => {
+          console.log(`📊 [Course] Translation progress: ${progress}%`);
+          setTranslationProgress(progress);
+        }
+      );
+      console.log("✅ [Course] Translation successful");
+      setCourse(translated as Course);
+    } catch (error) {
+      console.error("❌ [Course] Translation error:", error);
+      setCourse(originalCourse);
+    } finally {
+      console.log("🏁 [Course] Translation finished");
+      setTranslating(false);
+      setTranslationProgress(0);
+    }
+  };
 
   const GetCourse = async () => {
     try {
@@ -37,6 +90,7 @@ export default function CoursePage() {
           if (typeof courseData.courseLayout === "string") {
             courseData.courseLayout = JSON.parse(courseData.courseLayout);
           }
+          setOriginalCourse(courseData);
           setCourse(courseData);
           setCourseState("success");
         } else {
@@ -99,6 +153,22 @@ export default function CoursePage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+          {translating && (
+            <div className="max-w-4xl mx-auto mb-6">
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                <p className="text-center text-sm text-blue-700 dark:text-blue-300 mb-2">
+                  Translating course to {currentLanguage.flag} {currentLanguage.name}... {translationProgress}%
+                </p>
+                <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${translationProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {course && <CourseIntro course={course} />}
 
           <div className="space-y-8">

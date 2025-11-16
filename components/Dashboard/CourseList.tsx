@@ -24,23 +24,80 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { CourseCountContext } from '@/app/_context/CourseCountContext';
+import { useLanguage } from '@/app/_context/LanguageContext';
+import { translateArray } from '@/lib/translation/lingoTranslation';
 
 
 
 export default function CourseList() {
     const { user } = useUser();
+    const { language } = useLanguage();
     const [courses, setCourses] = useState([]);
+    const [originalCourses, setOriginalCourses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [translating, setTranslating] = useState(false);
+    const [translationProgress, setTranslationProgress] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const courseContext = useContext(CourseCountContext);
     const courseCount = courseContext?.courseCount;
     const setCourseCount = courseContext?.setCourseCount;
     const itemsPerPage = 6;
+
     useEffect(() => {
         user&&GetCourseList();
     }, [user]);
 
+    // Translate courses when language changes
+    useEffect(() => {
+        console.log("🎯 [CourseList] useEffect triggered:", {
+            language,
+            originalCoursesLength: originalCourses.length,
+            hasOriginalCourses: originalCourses.length > 0
+        });
+        if (originalCourses.length > 0) {
+            translateCourses();
+        }
+    }, [language, originalCourses]);
+
+    const translateCourses = async () => {
+        console.log("🔄 [CourseList] translateCourses called:", {
+            language,
+            coursesCount: originalCourses.length,
+        });
+
+        if (language === "en") {
+            console.log("⏭️ [CourseList] Language is English, using original courses");
+            setCourses(originalCourses);
+            return;
+        }
+
+        console.log("🚀 [CourseList] Starting translation process");
+        setTranslating(true);
+        setTranslationProgress(0);
+
+        try {
+            const translated = await translateArray(
+                originalCourses,
+                language,
+                (progress) => {
+                    console.log(`📊 [CourseList] Translation progress: ${progress}%`);
+                    setTranslationProgress(progress);
+                }
+            );
+            console.log("✅ [CourseList] Translation successful:", translated.length);
+            setCourses(translated);
+        } catch (error) {
+            console.error("❌ [CourseList] Translation error:", error);
+            setCourses(originalCourses);
+        } finally {
+            console.log("🏁 [CourseList] Translation finished");
+            setTranslating(false);
+            setTranslationProgress(0);
+        }
+    };
+
     const GetCourseList = async () => {
+        console.log("📥 [CourseList] GetCourseList called");
         setLoading(true);
         try {
             const result = await axios.post("/api/courses", {
@@ -50,11 +107,16 @@ export default function CourseList() {
                 console.error("Failed to fetch study materials");
                 return;
             }
+            console.log("📦 [CourseList] Courses fetched:", {
+                count: result.data.result.length,
+                firstCourse: result.data.result[0]?.courseLayout?.course_title
+            });
+            setOriginalCourses(result.data.result);
             setCourses(result.data.result);
-            console.log(result.data);
+            console.log("✅ [CourseList] State updated with courses");
             setCourseCount && setCourseCount(result.data.result.length);
         } catch (error) {
-            console.error("Error fetching study materials:", error);
+            console.error("❌ [CourseList] Error fetching study materials:", error);
         } finally {
             setLoading(false);
         }
@@ -89,6 +151,23 @@ export default function CourseList() {
 
     return (
       <div className="mt-10 px-3">
+        {/* Translation Progress */}
+        {translating && (
+          <div className="mb-6">
+            <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+              <p className="text-center text-sm text-blue-700 dark:text-blue-300 mb-2">
+                Translating courses to {language}... {translationProgress}%
+              </p>
+              <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                <div
+                  className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${translationProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between items-center">
           <h2 className="font-bold text-2xl text-gray-800 dark:text-gray-100">
         Your Study Material
@@ -209,8 +288,9 @@ export default function CourseList() {
           <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious 
-          href="#" 
+            <PaginationPrevious
+              size=""
+          href="#"
           onClick={(e) => {
             e.preventDefault();
             if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -220,24 +300,26 @@ export default function CourseList() {
           </PaginationItem>
           {[...Array(Math.ceil(courses.length / itemsPerPage))].map((_, index) => (
             <PaginationItem key={index}>
-          <PaginationLink 
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              setCurrentPage(index + 1);
-            }}
-            isActive={currentPage === index + 1}
-          >
-            {index + 1}
-          </PaginationLink>
+              <PaginationLink
+                href="#"
+                size=""
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage(index + 1);
+                }}
+                isActive={currentPage === index + 1}
+              >
+                {index + 1}
+              </PaginationLink>
             </PaginationItem>
           ))}
           <PaginationItem>
-            <PaginationNext 
-          href="#" 
-          onClick={(e) => {
-            e.preventDefault();
-            if (currentPage < Math.ceil(courses.length / itemsPerPage)) {
+            <PaginationNext
+              href="#"
+              size=""
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage < Math.ceil(courses.length / itemsPerPage)) {
               setCurrentPage(currentPage + 1);
             }
           }}

@@ -3,8 +3,10 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link"; 
+import Link from "next/link";
 import { toast } from "sonner";
+import { useLanguage } from "@/app/_context/LanguageContext";
+import { translateArray } from "@/lib/translation/lingoTranslation";
 
 interface ChapterNotes {
   chapter_number: number;
@@ -25,9 +27,15 @@ interface NotesResponse {
 
 function ViewNotes() {
   const { courseId } = useParams();
+  const { language, availableLanguages } = useLanguage();
   const [notesData, setNotesData] = useState<ChapterNotes[]>([]);
+  const [originalNotesData, setOriginalNotesData] = useState<ChapterNotes[]>([]);
   const [currentNoteIndex, setCurrentNoteIndex] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [translating, setTranslating] = useState(false);
+  const [translationProgress, setTranslationProgress] = useState(0);
+
+  const currentLanguage = availableLanguages.find(l => l.code === language) || availableLanguages[0];
 
   const GetNotes = async () => {
     try {
@@ -194,6 +202,7 @@ function ViewNotes() {
         .filter((note): note is ChapterNotes => note !== null)
         .sort((a, b) => a.chapter_number - b.chapter_number);
 
+      setOriginalNotesData(parsedNotes);
       setNotesData(parsedNotes);
     } catch (error) {
       console.error("Error fetching notes:", error);
@@ -209,6 +218,52 @@ function ViewNotes() {
       "Please keep refreshing the page to see the changes while content is generating"
     );
   }, []);
+
+  // Translate notes when language changes
+  useEffect(() => {
+    if (originalNotesData.length > 0) {
+      translateNotes();
+    }
+  }, [language, originalNotesData]);
+
+  const translateNotes = async () => {
+    console.log("🎯 [Notes] translateNotes called:", {
+      language,
+      languageName: currentLanguage?.name,
+      notesCount: originalNotesData.length,
+    });
+
+    if (language === "en") {
+      console.log("⏭️ [Notes] Language is English, using original notes");
+      setNotesData(originalNotesData);
+      return;
+    }
+
+    console.log("🚀 [Notes] Starting translation process");
+    setTranslating(true);
+    setTranslationProgress(0);
+
+    try {
+      const translated = await translateArray(
+        originalNotesData,
+        language,
+        (progress) => {
+          console.log(`📊 [Notes] Translation progress: ${progress}%`);
+          setTranslationProgress(progress);
+        }
+      );
+      console.log("✅ [Notes] Translation successful");
+      setNotesData(translated);
+    } catch (error) {
+      console.error("❌ [Notes] Translation error:", error);
+      toast.error("Translation failed. Showing original content.");
+      setNotesData(originalNotesData);
+    } finally {
+      console.log("🏁 [Notes] Translation finished");
+      setTranslating(false);
+      setTranslationProgress(0);
+    }
+  };
 
   const handlePrevNote = () => {
     if (currentNoteIndex > 0 && notesData.length > 0) {
@@ -268,6 +323,23 @@ function ViewNotes() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      {/* Translation Progress */}
+      {translating && (
+        <div className="mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+            <p className="text-center text-sm text-blue-700 dark:text-blue-300 mb-2">
+              Translating notes to {currentLanguage.flag} {currentLanguage.name}... {translationProgress}%
+            </p>
+            <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+              <div
+                className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${translationProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <Link

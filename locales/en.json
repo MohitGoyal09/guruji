@@ -50,7 +50,10 @@
     "myCourses": "My Courses",
     "createNewCourse": "Create New Course",
     "noCourses": "No courses yet. Create your first course!",
-    "upgrade": "Upgrade"
+    "upgrade": "Upgrade",
+    "welcome": "Welcome, {name}!",
+    "welcomeMessage": "We're excited to have you here! Start your learning journey by exploring our diverse collection of courses. Your path to knowledge begins now! 🌟",
+    "continueMessage": "Ready to continue your learning journey? You're doing great! Keep up the momentum and explore our latest courses."
   }
 }
 

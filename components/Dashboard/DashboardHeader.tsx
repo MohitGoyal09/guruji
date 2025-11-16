@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ModeToggle } from "../Toggle";
+import { LanguageSelector } from "../LanguageSelector";
 import { Bell, Menu, LayoutDashboard, Shield, CopyPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -94,6 +95,7 @@ export default function DashboardHeader() {
             <Bell className="h-5 w-5" />
             <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-background animate-pulse" />
           </Button>
+          <LanguageSelector compact />
           <ModeToggle />
           <UserButton afterSignOutUrl="/" />
         </div>
