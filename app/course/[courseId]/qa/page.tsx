@@ -17,7 +17,7 @@ interface QAPair {
 interface ApiResponse {
   id: number;
   courseId: string;
-  content: QAPair[];
+  content: QAPair[] | { [key: string]: any };
   type: string;
   status: string;
 }
@@ -45,7 +45,20 @@ export default function Qa() {
         studyType: "qa",
       });
       const data = result.data as ApiResponse;
-      setQaPairs(data.content || []);
+
+      // Handle both array and object formats
+      if (Array.isArray(data.content)) {
+        setQaPairs(data.content);
+      } else if (typeof data.content === 'object' && data.content !== null) {
+        const qaKey = Object.keys(data.content)[0];
+        if (qaKey && Array.isArray(data.content[qaKey])) {
+          setQaPairs(data.content[qaKey]);
+        } else {
+          setQaPairs([]);
+        }
+      } else {
+        setQaPairs([]);
+      }
     } catch (error) {
       console.error("Error fetching Q&A:", error);
       setError("Failed to load Q&A content. Please try again later.");
