@@ -7,7 +7,7 @@ import { RESOURCE_GENERATION_PROMPT } from "@/lib/ai/roadmapPrompts";
 import { RoadmapStructure, RoadmapSubtopic } from "@/Types/roadmap";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 
 // Helper to find a topic by ID in the roadmap structure

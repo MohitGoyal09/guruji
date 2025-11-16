@@ -289,7 +289,7 @@ export default function CourseList() {
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              size=""
+              size="default"
           href="#"
           onClick={(e) => {
             e.preventDefault();
@@ -302,7 +302,7 @@ export default function CourseList() {
             <PaginationItem key={index}>
               <PaginationLink
                 href="#"
-                size=""
+                size="default"
                 onClick={(e) => {
                   e.preventDefault();
                   setCurrentPage(index + 1);
@@ -316,7 +316,7 @@ export default function CourseList() {
           <PaginationItem>
             <PaginationNext
               href="#"
-              size=""
+              size="default"
               onClick={(e) => {
                 e.preventDefault();
                 if (currentPage < Math.ceil(courses.length / itemsPerPage)) {

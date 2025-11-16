@@ -30,6 +30,24 @@ function getNestedValue(obj: any, path: string): string {
   return typeof value === 'string' ? value : path;
 }
 
+// Export function for useTranslation hook
+export function getNestedTranslation(
+  translations: any,
+  key: string,
+  params?: Record<string, string | number>
+): string {
+  const translation = getNestedValue(translations, key);
+  
+  // Replace parameters like {count} with actual values
+  if (params) {
+    return translation.replace(/\{(\w+)\}/g, (match, paramKey) => {
+      return params[paramKey]?.toString() || match;
+    });
+  }
+  
+  return translation;
+}
+
 export function t(key: string, locale: Locale = 'en', params?: Record<string, string | number>): string {
   const translation = getNestedValue(translations[locale] || translations.en, key);
   

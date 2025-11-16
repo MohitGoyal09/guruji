@@ -37,15 +37,17 @@ export type ToolHeaderProps = {
 };
 
 const getStatusBadge = (status: ToolUIPart["state"]) => {
-  const labels: Record<ToolUIPart["state"], string> = {
+  const labels: Partial<Record<ToolUIPart["state"] | "output-denied" | "approval-requested" | "approval-responded", string>> = {
     "input-streaming": "Pending",
     "input-available": "Running",
     "output-available": "Completed",
     "output-error": "Error",
     "output-denied": "Denied",
+    "approval-requested": "Pending Approval",
+    "approval-responded": "Approved",
   };
 
-  const icons: Record<ToolUIPart["state"], ReactNode> = {
+  const icons: Partial<Record<ToolUIPart["state"] | "output-denied" | "approval-requested" | "approval-responded", ReactNode>> = {
     "input-streaming": <CircleIcon className="size-4" />,
     "input-available": <ClockIcon className="size-4 animate-pulse" />,
     "approval-requested": <ClockIcon className="size-4 text-yellow-600" />,
@@ -57,8 +59,8 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
 
   return (
     <Badge className="gap-1.5 rounded-full text-xs" variant="secondary">
-      {icons[status]}
-      {labels[status]}
+      {icons[status as keyof typeof icons]}
+      {labels[status as keyof typeof labels] ?? status}
     </Badge>
   );
 };

@@ -58,7 +58,7 @@ interface ExplanationData {
     mistake: string;
     solution: string;
   }[];
-  relatedTopics?: string[];
+  relatedTopics?: (string | { topic: string; relationship?: string })[];
   quickTips?: string[];
 }
 
