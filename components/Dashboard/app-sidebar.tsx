@@ -1,6 +1,6 @@
 "use client";
 import React, { useContext, useState } from "react";
-import { LayoutDashboard, Shield, Menu } from "lucide-react";
+import { LayoutDashboard, Shield, Menu, Map } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Progress } from "../ui/progress";
@@ -13,6 +13,11 @@ const items = [
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Roadmaps",
+    url: "/roadmaps",
+    icon: Map,
   },
   {
     title: "UpGrade",

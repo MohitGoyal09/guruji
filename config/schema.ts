@@ -72,3 +72,26 @@ export const TRANSLATION_CACHE_TABLE = pgTable("translation_cache", {
   contentType: varchar(), // 'script', 'narration', etc.
   createdAt: timestamp().defaultNow().notNull(),
 });
+
+export const ROADMAPS_TABLE = pgTable("roadmaps", {
+  id: serial().primaryKey(),
+  roadmapId: varchar().notNull(),
+  topic: varchar().notNull(),
+  skillLevel: varchar().notNull(), // 'beginner' | 'intermediate' | 'pro'
+  structure: json().notNull(), // hierarchical tree: Levels → Sections → Subtopics
+  prerequisites: json(), // prerequisites map for each topic
+  createdBy: varchar().notNull(),
+  createdAt: timestamp().defaultNow().notNull(),
+  updatedAt: timestamp(),
+});
+
+export const ROADMAP_PROGRESS_TABLE = pgTable("roadmap_progress", {
+  id: serial().primaryKey(),
+  roadmapId: varchar().notNull(),
+  userId: varchar().notNull(), // user email from Clerk
+  topicId: varchar().notNull(), // subtopic ID
+  completed: boolean().default(false),
+  completedAt: timestamp(),
+  createdAt: timestamp().defaultNow().notNull(),
+  updatedAt: timestamp(),
+});

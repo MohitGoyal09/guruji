@@ -9,7 +9,12 @@
       "Bash(if grep -q \"NEXT_PUBLIC_LINGO_API_KEY=\" .env)",
       "Bash(then echo \"✅ NEXT_PUBLIC_LINGO_API_KEY found in .env\")",
       "Bash(else echo \"❌ NEXT_PUBLIC_LINGO_API_KEY not found in .env\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(npm run dev:*)",
+      "Bash(if grep -q \"OPENAI_API_KEY=\" \"d:\\code\\lms\\.env\")",
+      "Bash(then echo \"✅ OPENAI_API_KEY found in .env\")",
+      "Bash(else echo \"❌ OPENAI_API_KEY not found in .env\")"
     ],
     "deny": [],
     "ask": []
