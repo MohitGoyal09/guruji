@@ -151,7 +151,7 @@ export default function RoadmapChatPanel({
       )}
     >
       {/* Header */}
-      <CardHeader className="flex-shrink-0 border-b bg-blue-600 text-white p-4">
+      <CardHeader className="shrink-0 border-b bg-blue-600 text-white p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -207,7 +207,7 @@ export default function RoadmapChatPanel({
                     )}
                   >
                     {message.role === "assistant" && (
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
                         <Bot className="h-4 w-4 text-white" />
                       </div>
                     )}
@@ -237,7 +237,7 @@ export default function RoadmapChatPanel({
                       </span>
                     </div>
                     {message.role === "user" && (
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                      <div className="shrink-0 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
                         <User className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                       </div>
                     )}
@@ -245,7 +245,7 @@ export default function RoadmapChatPanel({
                 ))}
                 {isLoading && (
                   <div className="flex gap-3 justify-start">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
                       <Bot className="h-4 w-4 text-white" />
                     </div>
                     <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl px-4 py-3">
@@ -258,7 +258,7 @@ export default function RoadmapChatPanel({
           </CardContent>
 
           {/* Input Area */}
-          <div className="flex-shrink-0 border-t p-4 bg-slate-50 dark:bg-slate-900/50">
+          <div className="shrink-0 border-t p-4 bg-slate-50 dark:bg-slate-900/50">
             <div className="flex gap-2">
               <Textarea
                 value={inputValue}
@@ -271,7 +271,7 @@ export default function RoadmapChatPanel({
               <Button
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || isLoading}
-                className="h-[60px] w-[60px] flex-shrink-0 bg-blue-600 hover:bg-blue-700"
+                className="h-[60px] w-[60px] shrink-0 bg-blue-600 hover:bg-blue-700"
               >
                 {isLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />

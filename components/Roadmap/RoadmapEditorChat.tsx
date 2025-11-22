@@ -108,7 +108,7 @@ export default function RoadmapEditorChat({
             <Button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}
-              className="h-[60px] w-[60px] flex-shrink-0 bg-blue-600 hover:bg-blue-700"
+              className="h-[60px] w-[60px] shrink-0 bg-blue-600 hover:bg-blue-700"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

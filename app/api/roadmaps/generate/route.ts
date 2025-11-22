@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("🛣️ Generating roadmap:", { topic, skillLevel, createdBy });
+    console.log("Generating roadmap:", { topic, skillLevel, createdBy });
 
     // Generate roadmap blueprint
     let structure = await generateRoadmapBlueprint(topic, skillLevel);
@@ -49,14 +49,14 @@ export async function POST(req: Request) {
       })
       .returning();
 
-    console.log("✅ Roadmap generated successfully:", roadmapId);
+    console.log("Roadmap generated successfully:", roadmapId);
 
     return NextResponse.json({
       roadmap: result[0],
       success: true,
     }, { status: 201 });
   } catch (error) {
-    console.error("❌ Error generating roadmap:", error);
+    console.error("Error generating roadmap:", error);
     return NextResponse.json(
       { 
         error: "Failed to generate roadmap",
